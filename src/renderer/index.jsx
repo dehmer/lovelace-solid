@@ -11,16 +11,17 @@ import './index.scss'
 
 const openDatabase = async prefix => {
   const db = await database(prefix)
-  // return R.take(200, await db.symbols())
+  // return R.take(100, await db.symbols())
   return db.symbols()
 }
 
 const reduce = () => {
   const handlers = {
-    next: (_, { options, index }) => ({
-      stage: 'loading',
+    next: (state, { index, options }) => ({
       index,
       options,
+      stage: 'loading',
+      threshold: state.threshold,
       sources: {
         legacy: Image.source(legacy)(options[index]),
         modern: Image.source(modern)(options[index]),
@@ -43,11 +44,9 @@ const reduce = () => {
 const App = () => {
   const canvas = new OffscreenCanvas(0, 0)
   const putOffscreenImage = Image.put(canvas)
-  // const [options] = Solid.createResource('2525C+ICON', openDatabase)
-  // const [options] = Solid.createResource('2525C+MONOCHROME', openDatabase)
-  const [options] = Solid.createResource('', openDatabase)
-
-  const state = Signal.reducer(reduce(), { stage: 'init' })
+  const [options] = Solid.createResource('2525C+ICON', openDatabase)
+  const state = Signal.reducer(reduce(), { stage: 'init', threshold: 100 })
+  const review = Signal.of([])
 
   // Image DOM references:
   const refs = { legacy: null, modern: null }
@@ -76,14 +75,23 @@ const App = () => {
   // Compare image data after cropping:
   Solid.createEffect(() => {
     if (state().stage !== 'cropped') return
-    const { index, options, cropped } = state()
+    const { threshold, index, options, sources, cropped } = state()
     const { legacy, modern } = cropped
     const width = Math.max(legacy.width, modern.width)
     const height = Math.max(legacy.height, modern.height)
     const img1 = putOffscreenImage(width, height, legacy).getImageData(0, 0, width, height)
     const img2 = putOffscreenImage(width, height, modern).getImageData(0, 0, width, height)
     const difference = pixelmatch(img1.data, img2.data, null, width, height, { threshold: 0.1 })
-    // console.log('difference', index, options.length, difference)
+
+    if (difference > threshold) {
+      console.log('difference', index, difference)
+      review(acc => acc.concat([{
+        sources: { ...sources },
+        index: index,
+        ...options[index],
+        difference
+      }]))
+    }
 
     // Next index: rinse and repeat.
     if (index < options.length - 1) {
@@ -100,12 +108,12 @@ const App = () => {
     .map(difference(0))
     .map(double)
 
-  // const progress = Solid.createMemo(() => {
-  //   const { index, options } = state()
-  //   return options?.length
-  //     ? (index + 1) / options.length
-  //     : 0
-  // })
+  const progress = Solid.createMemo(() => {
+    const { index, options } = state()
+    return options?.length
+      ? (index + 1) / options.length
+      : 0
+  })
 
   const handleLoad = ({ target }) => {
     const cropped = Image.crop(canvas)(target)
@@ -114,25 +122,34 @@ const App = () => {
 
   return (
     <>
-      {/* <Progress progress={progress()}/> */}
+      <Progress progress={progress()}/>
       <div class='main'>
         <img
           id='legacy'
           alt=''
           ref={refs.legacy}
-          width={120}
-          height={120}
           onLoad={handleLoad}
         />
         <img
           id='modern'
           alt=''
           ref={refs.modern}
-          width={120}
-          height={120}
           onLoad={handleLoad}
         />
         <div>{`${thruput()} ops/s`}</div>
+      </div>
+
+      <div class='review'>
+        <Solid.For each={review()}>{(card) =>
+          <div class='card'>
+            <div class='card-content'>
+              <img class='image--small' src={card.sources.legacy} alt=''/>
+              <img class='image--small' src={card.sources.modern} alt=''/>
+            </div>
+            <div class='summary'>{card.difference} @ {card.index}</div>
+            <div class='summary'>{card.sidc}</div>
+          </div>
+        }</Solid.For>
       </div>
     </>
   )

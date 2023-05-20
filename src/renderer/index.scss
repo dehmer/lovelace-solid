@@ -38,3 +38,40 @@ body {
   box-shadow: 0 0 8px;
   z-index: 2;
 }
+
+img {
+  width: 120px;
+  height: 120px;
+}
+
+.review {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 32px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: row;
+}
+
+.summary {
+  display: flex;
+  justify-content: center;
+  border: solid black 0.5px;
+  font-size: 90%;
+}
+
+.image--small {
+  width: 80px;
+  height: 80px;
+  background-color: lightblue;
+  border: dashed black 0.5px;
+}
