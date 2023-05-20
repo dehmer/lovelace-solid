@@ -1,0 +1,40 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.main {
+  padding: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  transition: width 0.21s ease-in-out;
+  z-index: 1;
+}
+
+.progress--hidden {
+  transition: top 0.8s ease;
+  top: -8px;
+}
+
+.progress__leader {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 3px;
+  width: 100px;
+  transform: rotate(2.5deg) translate(0px, -4px);
+  box-shadow: 0 0 8px;
+  z-index: 2;
+}

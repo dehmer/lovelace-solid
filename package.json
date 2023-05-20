@@ -1,0 +1,54 @@
+{
+  "id": "23b9c4e2-e5b0-4504-b796-70f242ddda1a",
+  "name": "electron-solid",
+  "version": "0.0.0",
+  "description": "Electron/Solid Template",
+  "keywords": [
+    "electron",
+    "solid",
+    "babel",
+    "webpack",
+    "sass",
+    "level"
+  ],
+  "author": "horst.dehmer@syncpoint.io",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",
+    "serve": "webpack serve",
+    "start": "electron . --static"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/preset-env": "^7.21.5",
+    "@babel/register": "^7.18.9",
+    "babel-loader": "^9.1.2",
+    "babel-preset-solid": "^1.7.4",
+    "cross-env": "^7.0.3",
+    "css-loader": "^6.7.3",
+    "electron": "^24.3.0",
+    "html-webpack-plugin": "^5.5.1",
+    "mini-css-extract-plugin": "^2.7.5",
+    "node-sass": "^8.0.0",
+    "sass-loader": "^13.2.2",
+    "style-loader": "^3.3.2",
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1",
+    "webpack-dev-server": "^4.15.0"
+  },
+  "dependencies": {
+    "level": "^8.0.0",
+    "level-read-stream": "^1.1.0",
+    "memory-level": "^1.0.0",
+    "mil-std-2525": "^0.2.7",
+    "milsymbol": "^2.2.0",
+    "object-hash": "^3.0.0",
+    "pixelmatch": "^5.3.0",
+    "ramda": "^0.29.0",
+    "solid-js": "^1.7.5",
+    "uuid-random": "^1.3.2"
+  }
+}
