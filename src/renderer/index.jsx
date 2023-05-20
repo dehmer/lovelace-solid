@@ -15,37 +15,28 @@ const openDatabase = async prefix => {
   return db.symbols()
 }
 
-const reduce = () => {
-  const handlers = {
-    next: (state, { index, options }) => ({
-      index,
-      options,
-      stage: 'loading',
-      threshold: state.threshold,
-      sources: {
-        legacy: Image.source(legacy)(options[index]),
-        modern: Image.source(modern)(options[index]),
-      }
-    }),
-
-    crop: (state, event) => {
-      const cropped = { ...state.cropped || {}, [event.id]: event.cropped }
-      const stage = Object.keys(cropped).length === 2 ? 'cropped' : 'cropping'
-      return { ...state, stage, cropped }
-    }
+const next = (index, options) => state => ({
+  index,
+  options,
+  stage: 'loading',
+  threshold: state.threshold,
+  sources: {
+    legacy: Image.source(legacy)(options[index]),
+    modern: Image.source(modern)(options[index]),
   }
+})
 
-  return (state, event) => {
-    const handler = (handlers[event.type] || R.identity)
-    return handler(state, event)
-  }
+const crop = (id, cropped) => state => {
+  const next = { ...state.cropped || {}, [id]: cropped }
+  const stage = Object.keys(next).length === 2 ? 'cropped' : 'cropping'
+  return { ...state, stage, cropped: next }
 }
 
 const App = () => {
   const canvas = new OffscreenCanvas(0, 0)
   const putOffscreenImage = Image.put(canvas)
   const [options] = Solid.createResource('2525C+ICON', openDatabase)
-  const state = Signal.reducer(reduce(), { stage: 'init', threshold: 100 })
+  const state = Signal.of({ stage: 'init', threshold: 100 })
   const review = Signal.of([])
 
   // Image DOM references:
@@ -53,7 +44,7 @@ const App = () => {
 
   // Get the ball rolling when database is open and options are loaded:
   Solid.createEffect(() => {
-    if (options()) state({ type: 'next', index: 0, options: options() })
+    if (options()) state(next(0, options()))
   })
 
   // Update images sources for current index:
@@ -63,12 +54,12 @@ const App = () => {
 
     if(Image.setSource(refs.legacy)(sources.legacy)) {
       const cropped = Image.crop(canvas)(refs.legacy)
-      state({ type: 'crop', id: 'legacy', cropped })
+      state(crop('legacy', cropped))
     }
 
     if(Image.setSource(refs.modern)(sources.modern)) {
       const cropped = Image.crop(canvas)(refs.modern)
-      state({ type: 'crop', id: 'modern', cropped })
+      state(crop('modern', cropped))
     }
   })
 
@@ -84,7 +75,6 @@ const App = () => {
     const difference = pixelmatch(img1.data, img2.data, null, width, height, { threshold: 0.1 })
 
     if (difference > threshold) {
-      console.log('difference', index, difference)
       review(acc => acc.concat([{
         sources: { ...sources },
         index: index,
@@ -95,7 +85,7 @@ const App = () => {
 
     // Next index: rinse and repeat.
     if (index < options.length - 1) {
-      state({ type: 'next', index: index + 1, options })
+      state(next(index + 1, options))
     }
   })
 
@@ -117,7 +107,7 @@ const App = () => {
 
   const handleLoad = ({ target }) => {
     const cropped = Image.crop(canvas)(target)
-    state({ type: 'crop', id: target.id, cropped })
+    state(crop(target.id, cropped))
   }
 
   return (

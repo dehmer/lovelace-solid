@@ -79,7 +79,7 @@ const renderer = {
     //
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      title: 'Electron/Svelte Template'
+      title: 'Lovelace Symbol Comparison (Solid)'
     })
   ]
 }
