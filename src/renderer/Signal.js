@@ -35,4 +35,11 @@ Signal.every = timeout => {
   return Signal(get)
 }
 
+Signal.foldp =
+Signal.scan =
+  (fn, acc, signal) => Signal(() => {
+    acc = fn(acc, signal())
+    return acc
+  })
+
 export default Signal

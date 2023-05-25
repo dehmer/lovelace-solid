@@ -15,6 +15,11 @@ const openDatabase = async prefix => {
   return db.symbols()
 }
 
+const Actions = {
+  next: (index, options) => ({ type: 'next', index, options }),
+  crop: (id, cropped) => ({ type: 'crop', id, cropped })
+}
+
 const next = (index, options) => state => ({
   index,
   options,
@@ -36,7 +41,15 @@ const App = () => {
   const canvas = new OffscreenCanvas(0, 0)
   const putOffscreenImage = Image.put(canvas)
   const [options] = Solid.createResource('2525C+ICON', openDatabase)
-  const state = Signal.of({ stage: 'init', threshold: 100 })
+  const initial = { stage: 'init', threshold: 100 }
+  const actions = Signal.of()
+  const state = Signal.scan((state, action) => {
+    switch(action?.type) {
+      case 'next': return next(action.index, action.options)(state)
+      case 'crop': return crop(action.id, action.cropped)(state)
+      default: return state
+    }
+  }, initial, actions)
   const review = Signal.of([])
 
   // Image DOM references:
@@ -44,7 +57,9 @@ const App = () => {
 
   // Get the ball rolling when database is open and options are loaded:
   Solid.createEffect(() => {
-    if (options()) state(next(0, options()))
+    if (options()) {
+      actions(Actions.next(0, options()))
+    }
   })
 
   // Update images sources for current index:
@@ -54,12 +69,12 @@ const App = () => {
 
     if(Image.setSource(refs.legacy)(sources.legacy)) {
       const cropped = Image.crop(canvas)(refs.legacy)
-      state(crop('legacy', cropped))
+      actions(Actions.crop('legacy', cropped))
     }
 
     if(Image.setSource(refs.modern)(sources.modern)) {
       const cropped = Image.crop(canvas)(refs.modern)
-      state(crop('modern', cropped))
+      actions(Actions.crop('modern', cropped))
     }
   })
 
@@ -85,7 +100,7 @@ const App = () => {
 
     // Next index: rinse and repeat.
     if (index < options.length - 1) {
-      state(next(index + 1, options))
+      actions(Actions.next(index + 1, options))
     }
   })
 
@@ -107,7 +122,7 @@ const App = () => {
 
   const handleLoad = ({ target }) => {
     const cropped = Image.crop(canvas)(target)
-    state(crop(target.id, cropped))
+    actions(Actions.crop(target.id, cropped))
   }
 
   return (
